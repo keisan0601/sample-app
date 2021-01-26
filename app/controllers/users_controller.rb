@@ -1,10 +1,15 @@
 class UsersController < ApplicationController
+before_action :set_user, only: [:show, :edit, :update]
+
   
   def show
-    @user = User.find(params[:id])
   end
 
   def new
+    if logged_in? && !current_user.admin?
+      flash[:info] = 'すでにログインしています。'
+      redirect_to current_user
+    end
     @user = User.new
   end
   
@@ -12,7 +17,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
     if @user.save
       log_in @user
-      flash[:success] = '新規作成に成功しました。'
+      flash[:success] = 'ユーザーの新規作成に成功しました。'
       redirect_to @user
     else
       render :new
@@ -20,7 +25,6 @@ class UsersController < ApplicationController
   end
   
   def edit
-    @user = User.find(params[:id])
   end
   
   def update
@@ -28,10 +32,15 @@ class UsersController < ApplicationController
       flash[:success] = "ユーザー情報を更新しました。"
       redirect_to @user
     else
-      render :edit
+      render :edit      
     end
   end
   
+  def destroy
+    @user.destroy
+    flash[:success] = "#{@user.name}のデータを削除しました。"
+    redirect_to users_url
+  end
   
   private
   
